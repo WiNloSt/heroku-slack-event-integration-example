@@ -20,6 +20,7 @@ app.post('/', (req, res) => {
   const isFromOurSlackApp = req.body.token === process.env.SLACK_APP_TOKEN
   if (isFromOurSlackApp) {
     res.send(R.pick(['challenge'], req.body))
+    return
   }
 
   res.send('request not from our Slack app')
