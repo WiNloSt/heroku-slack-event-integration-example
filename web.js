@@ -30,13 +30,8 @@ app.post('/', (req, res) => {
     let messageData
     if (body.event.type === 'message') {
       try {
-        console.log('////0')
-        messageData = JSON.parse(body.event.text)
-        console.log('////1')
-        const cleanedData = cleanUpSlackData(messageData)
-        console.log('////2', cleanedData)
-        sendEmail(cleanData)
-        console.log('////3')
+        const cleanedData = cleanUpSlackData(body.event.text)
+        sendEmail(JSON.parse(cleanData))
       } catch (error) {
         console.log('message can not be parsed')
       }
