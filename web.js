@@ -6,6 +6,9 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
 const R = require('ramda')
+const sgMail = require('@sendgrid/mail')
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 app.use(bodyParser.json()) // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
@@ -22,7 +25,19 @@ app.post('/', (req, res) => {
   if (isFromOurSlackApp) {
     console.log('////////////')
     console.log(req.body)
-    res.send(R.pick(['challenge'], req.body))
+    const challenge = R.pick(['challenge'])
+    const { body } = req
+    let messageData
+    if (body.event.type === 'message') {
+      try {
+        messageData = JSON.parse(body.event.text)
+        sendEmail(messageData)
+      } catch (error) {
+        console.log('message can not be parsed')
+      }
+    }
+
+    res.send(Object.assign({}, messageData, challenge), req.body)
     return
   }
 
@@ -32,3 +47,7 @@ app.post('/', (req, res) => {
 app.listen(port, function() {
   console.log(`Example app listening on port ${port}!`)
 })
+
+const sendEmail = data => {
+  sgMail.send(R.pick(['to', 'from', 'subject', 'text', 'html'], data))
+}
