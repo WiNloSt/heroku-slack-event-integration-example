@@ -31,13 +31,13 @@ app.post('/', (req, res) => {
     if (body.event.type === 'message') {
       try {
         messageData = JSON.parse(body.event.text)
-        sendEmail(messageData)
+        sendEmail(cleanUpSlackData(messageData))
       } catch (error) {
         console.log('message can not be parsed')
       }
     }
 
-    res.send(Object.assign({}, messageData, challenge), req.body)
+    res.send(challenge, req.body)
     return
   }
 
@@ -47,6 +47,13 @@ app.post('/', (req, res) => {
 app.listen(port, function() {
   console.log(`Example app listening on port ${port}!`)
 })
+
+const cleanUpSlackData = message =>
+  message
+    .replace(/\n/g, '')
+    .replace(/“/g, '"')
+    .replace(/”/g, '"')
+    .replace(/<mailto:.*?\|(.*?)>/g, '$1')
 
 const sendEmail = data => {
   sgMail.send(R.pick(['to', 'from', 'subject', 'text', 'html'], data))
